@@ -4,7 +4,23 @@ These double as examples: each test shows one thing an Actor can do. Run them
 with `task test` or `uv run --with pytest pytest`.
 """
 
-from grimm import Actor, Dungeon
+from grimm import Actor, Dungeon, SaveGame
+
+SAMPLE_SAVE = """version: 1
+game:
+    title: Jäger
+    location: archiv
+    inventory:
+        - helm
+        - nanostaub
+    worn:
+        - helm
+    visited:
+        - archiv
+        - tor
+    solved:
+        - repo-tor
+"""
 
 
 def test_default_actor_has_a_name():
@@ -71,3 +87,56 @@ def test_status_reports_what_it_sees(monkeypatch):
     assert st["binary"] is None
     assert st["buildable"] is False
     assert st["workspace"].name == "work"
+
+
+def test_savegame_parses_the_save(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    s = SaveGame(str(p)).load()
+    assert s.version == 1
+    assert s.title == "Jäger"
+    assert s.location == "archiv"
+    assert s.inventory == ["helm", "nanostaub"]
+    assert s.worn == ["helm"]
+    assert "tor" in s.visited
+    assert s.solved == ["repo-tor"]
+
+
+def test_savegame_summary_resolves_names(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    out = SaveGame(str(p)).load().summary({"helm": "Helm mit Stirnlampe", "archiv": "Das Archiv"})
+    assert "Helm mit Stirnlampe" in out
+    assert "Das Archiv" in out
+
+
+def test_dungeon_world_names_from_source(tmp_path):
+    src = tmp_path / "grimm__dungeon__mono"
+    (src / "cmd" / "grimm").mkdir(parents=True)
+    (src / "go.mod").write_text("module x\n")
+    world = src / "content" / "world"
+    world.mkdir(parents=True)
+    (world / "items.yaml").write_text(
+        "kind: item\nid: helm\nname: Helm mit Stirnlampe\n"
+        "---\nkind: room\nid: archiv\ntitle: Das Archiv\n",
+        encoding="utf-8",
+    )
+    names = Dungeon(source=str(src)).world_names()
+    assert names["helm"] == "Helm mit Stirnlampe"
+    assert names["archiv"] == "Das Archiv"
+
+
+def test_savegame_makes_an_actor(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    hero = SaveGame(str(p)).load().actor()
+    assert isinstance(hero, Actor)
+    assert hero.name() == "Jäger"
+
+
+def test_dungeon_show_without_save(capsys, monkeypatch, tmp_path):
+    monkeypatch.setenv("HOME", str(tmp_path))  # empty home → no save
+    result = Dungeon().show()
+    printed = capsys.readouterr().out
+    assert result is None
+    assert "No saved game" in printed

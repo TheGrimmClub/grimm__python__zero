@@ -60,6 +60,25 @@ gives it back, and `me.enter_dungeon()` is a method that *does* something.
 
 Run it: `task step2`  (or `uv run examples/step2.py`)
 
+## Step 4 — read your saved game
+
+Once you've played the dungeon, Python can read your progress from
+`~/.grimm/save.yaml`:
+
+```python
+from grimm import Dungeon, SaveGame
+
+Dungeon().show()          # inventory, current room, visited, solved
+
+save = SaveGame().load()  # or work with the data directly
+print(save.location)      # "archiv"
+print(save.inventory)     # ["helm", "nanostaub", ...]
+hero = save.actor()       # an Actor named after your class → back to Step 1
+```
+
+`Dungeon().show()` resolves ids to full names (`helm` → "Helm mit Stirnlampe")
+when a `grimm__dungeon__mono` checkout is nearby. Run it: `task save`.
+
 ## Concepts you just met
 
 | Idea | Where you saw it |

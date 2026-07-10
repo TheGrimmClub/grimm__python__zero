@@ -147,6 +147,49 @@ class Dungeon:
             "buildable": binary is None and self.find_source() is not None,
         }
 
+    # -- saved-game data ----------------------------------------------------
+
+    def save(self):
+        """Return the saved game as a `SaveGame`, or ``None`` if there is none."""
+        from .save import SaveGame
+
+        game = SaveGame()
+        return game.load() if game.exists() else None
+
+    def world_names(self):
+        """Map item/room ids to human names, read from a nearby checkout.
+
+        Returns an empty dict when no source checkout is available (then ids are
+        shown as-is).
+        """
+        src = self.find_source()
+        names = {}
+        if src is None:
+            return names
+        world = src / "content" / "world"
+        if not world.is_dir():
+            return names
+        for yml in sorted(world.glob("*.yaml")):
+            for doc in yml.read_text(encoding="utf-8").split("\n---"):
+                ident = _field(doc, "id")
+                label = _field(doc, "name") or _field(doc, "title")
+                if ident and label:
+                    names[ident] = label
+        return names
+
+    def show(self):
+        """Print a summary of the saved game (inventory, room, progress).
+
+        Uses human names from a nearby checkout when available. Returns the
+        `SaveGame`, or ``None`` if there is no save yet.
+        """
+        game = self.save()
+        if game is None:
+            print(warn("No saved game yet — play first with Dungeon().enter()."))
+            return None
+        print(game.summary(self.world_names()))
+        return game
+
     def enter(self, build=True):
         """Open the door and start the adventure.
 
@@ -197,3 +240,12 @@ class Dungeon:
 def warn(text):
     """A yellow warning marker, kept tiny so the toy package stays dependency-free."""
     return f"\N{WARNING SIGN} {text}"
+
+
+def _field(doc, key):
+    """Return the value of a top-level ``key:`` line in a world YAML document."""
+    prefix = key + ":"
+    for line in doc.splitlines():
+        if line.startswith(prefix):
+            return line.split(":", 1)[1].strip()
+    return None
