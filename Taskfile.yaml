@@ -20,6 +20,11 @@ tasks:
     cmds:
       - uv run examples/step2.py
 
+  dungeon:
+    desc: "Run step 3 — open the door and enter the real dungeon"
+    cmds:
+      - uv run examples/step3.py
+
   test:
     desc: Run the tests
     cmds:

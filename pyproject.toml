@@ -14,3 +14,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["grimm"]
+
+[tool.pytest.ini_options]
+# Flat layout: make `import grimm` work from the project root.
+pythonpath = ["."]
+testpaths = ["tests"]

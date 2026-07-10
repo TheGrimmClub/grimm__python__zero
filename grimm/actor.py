@@ -35,11 +35,23 @@ class Actor:
         """
         return self._name
 
-    def enter_dungeon(self):
-        """Step through the gate into the Grimm dungeon."""
+    def enter_dungeon(self, launch=False):
+        """Step through the gate into the Grimm dungeon.
+
+        By default this just tells the story. Pass ``launch=True`` to actually
+        start the real adventure (the `grimm` console program):
+
+            me.enter_dungeon(launch=True)
+        """
         self._in_dungeon = True
         # An f-string ("formatted string") drops the name straight into the text.
         print(f"{self._name} betritt das Verlies. Die Tür fällt ins Schloss. \N{CANDLE}")
+        if launch:
+            # Import here so the toy Actor doesn't drag in the launcher unless asked.
+            from .dungeon import Dungeon
+
+            return Dungeon().enter()
+        return None
 
     def __str__(self):
         # __str__ decides what `print(actor)` shows. Without it, printing an

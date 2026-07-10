@@ -12,6 +12,7 @@ A *package* is just a folder of Python files that belong together. This line…
 """
 
 from .actor import Actor
+from .dungeon import Dungeon
 
-__all__ = ["Actor"]
+__all__ = ["Actor", "Dungeon"]
 __version__ = "0.1.0"
