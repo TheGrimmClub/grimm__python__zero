@@ -38,9 +38,36 @@ def test_dungeon_finds_an_explicit_executable(tmp_path):
 
 def test_dungeon_shows_directions_when_missing(capsys, monkeypatch):
     door = Dungeon()
-    # Pretend the dungeon can't be found anywhere, so nothing is launched.
+    # Pretend nothing is found; build=False so no real build is attempted.
     monkeypatch.setattr(door, "find", lambda: None)
-    code = door.enter()
+    code = door.enter(build=False)
     printed = capsys.readouterr().out
     assert code == 1
     assert "grimm__dungeon__mono" in printed
+
+
+def test_dungeon_finds_a_buildable_source(tmp_path):
+    src = tmp_path / "grimm__dungeon__mono"
+    (src / "cmd" / "grimm").mkdir(parents=True)
+    (src / "go.mod").write_text("module x\n")
+    assert Dungeon(source=str(src)).find_source() == src
+
+
+def test_seed_workspace_writes_the_package(tmp_path, monkeypatch):
+    monkeypatch.setenv("HOME", str(tmp_path))
+    pkg = Dungeon().seed_workspace()
+    assert (pkg / "actor.py").is_file()
+    assert "class Actor" in (pkg / "actor.py").read_text()
+    assert "Actor" in (pkg / "__init__.py").read_text()
+    # Idempotent.
+    Dungeon().seed_workspace()
+
+
+def test_status_reports_what_it_sees(monkeypatch):
+    door = Dungeon()
+    monkeypatch.setattr(door, "find", lambda: None)
+    monkeypatch.setattr(door, "find_source", lambda: None)
+    st = door.status()
+    assert st["binary"] is None
+    assert st["buildable"] is False
+    assert st["workspace"].name == "work"
