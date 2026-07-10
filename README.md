@@ -115,7 +115,9 @@ Open a live shell with everything imported: `task repl`, then `from grimm import
 ## API reference
 
 Full reference for `Actor`, `Dungeon`, and `SaveGame` — every method, signature,
-and example, plus the save-file schema — is in **[docs/API.md](docs/API.md)**.
+and example, plus the save-file schema — is rendered in the Grimmoire:
+
+**→ <https://thegrimmclub.github.io/grimmoire/en/api-reference/>** (also [docs/API.md](docs/API.md)).
 
 ## Layout
 
