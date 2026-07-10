@@ -126,6 +126,43 @@ def test_dungeon_world_names_from_source(tmp_path):
     assert names["archiv"] == "Das Archiv"
 
 
+def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    (
+        SaveGame(str(p))
+        .load()
+        .grant("zeitsiegel", "helm")  # helm already there — no duplicate
+        .visit("halle")
+        .solve("lern-actor")
+        .go("halle")
+        .write()
+    )
+    again = SaveGame(str(p)).load()
+    assert again.inventory.count("helm") == 1
+    assert "zeitsiegel" in again.inventory
+    assert "halle" in again.visited
+    assert "lern-actor" in again.solved
+    assert again.location == "halle"
+
+
+def test_savegame_drop_removes_item_and_worn(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    SaveGame(str(p)).load().drop("helm").write()
+    again = SaveGame(str(p)).load()
+    assert "helm" not in again.inventory
+    assert "helm" not in again.worn
+
+
+def test_savegame_writes_empty_lists(tmp_path):
+    p = tmp_path / "save.yaml"
+    SaveGame(str(p)).go("tor").write()  # fresh, empty inventory/visited/...
+    text = p.read_text(encoding="utf-8")
+    assert "inventory: []" in text
+    assert SaveGame(str(p)).load().location == "tor"
+
+
 def test_savegame_makes_an_actor(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")

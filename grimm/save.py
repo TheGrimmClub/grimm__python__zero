@@ -22,6 +22,13 @@ def _scalar(text):
     return text
 
 
+def _extend(dst, items):
+    """Append items to dst, skipping ones already present (order preserved)."""
+    for it in items:
+        if it not in dst:
+            dst.append(it)
+
+
 def _parse_save(text):
     """Parse the save's small, fixed YAML shape into a plain dict.
 
@@ -130,6 +137,80 @@ class SaveGame:
         from .actor import Actor
 
         return Actor(name=self.title or "Namenloser")
+
+    # -- writing (grant items, visit rooms, …) ------------------------------
+    #
+    # Each mutator returns ``self`` so you can chain them, then ``write()``:
+    #     SaveGame().load().grant("zeitsiegel").visit("archiv").write()
+
+    def grant(self, *items):
+        """Add item ids to the inventory (no duplicates)."""
+        _extend(self.inventory, items)
+        return self
+
+    def drop(self, *items):
+        """Remove item ids from the inventory (and from worn)."""
+        for it in items:
+            while it in self.inventory:
+                self.inventory.remove(it)
+            while it in self.worn:
+                self.worn.remove(it)
+        return self
+
+    def wear(self, item):
+        """Wear an item — granting it first if needed."""
+        _extend(self.inventory, [item])
+        _extend(self.worn, [item])
+        return self
+
+    def visit(self, *rooms):
+        """Mark room ids as visited."""
+        _extend(self.visited, rooms)
+        return self
+
+    def solve(self, *puzzles):
+        """Mark puzzle ids as solved."""
+        _extend(self.solved, puzzles)
+        return self
+
+    def go(self, room):
+        """Set the current room."""
+        self.location = room
+        return self
+
+    def write(self, path=None):
+        """Write the save back as YAML the dungeon can load. Returns the path."""
+        target = Path(path).expanduser() if path else self.path
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(self._dump(), encoding="utf-8")
+        return target
+
+    def _dump(self):
+        """Serialize to the exact YAML shape the dungeon writes (indent 4)."""
+
+        def scalar(v):
+            return v if v else '""'
+
+        def block(name, items):
+            if not items:
+                return f"    {name}: []"
+            return "\n".join([f"    {name}:"] + [f"        - {i}" for i in items])
+
+        return (
+            "\n".join(
+                [
+                    f"version: {self.version or 1}",
+                    "game:",
+                    f"    title: {scalar(self.title)}",
+                    f"    location: {scalar(self.location)}",
+                    block("inventory", self.inventory),
+                    block("worn", self.worn),
+                    block("visited", self.visited),
+                    block("solved", self.solved),
+                ]
+            )
+            + "\n"
+        )
 
     def __str__(self):
         return self.summary()

@@ -79,6 +79,18 @@ hero = save.actor()       # an Actor named after your class → back to Step 1
 `Dungeon().show()` resolves ids to full names (`helm` → "Helm mit Stirnlampe")
 when a `grimm__dungeon__mono` checkout is nearby. Run it: `task save`.
 
+You can also **write** the save — grant items, mark rooms, then persist. The
+dungeon loads it the next time you play:
+
+```python
+save = SaveGame().load()
+save.grant("zeitsiegel").wear("helm").visit("archiv").solve("repo-tor").go("halle")
+save.write()   # writes ~/.grimm/save.yaml — the real dungeon reads it back
+```
+
+Mutators (`grant`, `drop`, `wear`, `visit`, `solve`, `go`) chain and skip
+duplicates; `write()` emits exactly the YAML the Go game expects.
+
 ## Concepts you just met
 
 | Idea | Where you saw it |

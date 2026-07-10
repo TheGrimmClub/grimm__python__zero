@@ -21,3 +21,10 @@ if save.exists():
     # Bridge back to your Actor:
     hero = save.actor()
     print(hero)
+
+    # You can also WRITE the save — grant items, mark rooms, then persist.
+    # The dungeon loads it next time you play. (Commented so this example
+    # doesn't change your real save; uncomment to try it.)
+    #
+    #   save.grant("zeitsiegel").wear("helm").visit("archiv").solve("repo-tor")
+    #   save.write()
