@@ -34,3 +34,33 @@ tasks:
     desc: Open a Python shell with grimm ready to import
     cmds:
       - uv run python
+
+  # --- Packaging & release -------------------------------------------------
+
+  build:
+    desc: Build the sdist + wheel into dist/
+    cmds:
+      - rm -rf dist
+      - uv build
+
+  check:
+    desc: Build and validate the package metadata for PyPI
+    cmds:
+      - task: build
+      - uvx twine check dist/*
+
+  release:
+    desc: 'Cut a GitHub release → publishes to PyPI via trusted publishing (usage: task release -- v0.1.0)'
+    preconditions:
+      - sh: command -v gh
+        msg: "GitHub CLI (gh) is required to create a release."
+      - sh: test -n "{{.CLI_ARGS}}"
+        msg: "Pass a version tag, e.g.  task release -- v0.1.0"
+    cmds:
+      - gh release create {{.CLI_ARGS}} --title "{{.CLI_ARGS}}" --generate-notes
+
+  publish-local:
+    desc: 'Fallback: build and upload to PyPI from your machine with a token (prefer `task release`)'
+    cmds:
+      - task: check
+      - uv publish
