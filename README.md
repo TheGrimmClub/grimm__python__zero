@@ -112,15 +112,23 @@ duplicates; `write()` emits exactly the YAML the Go game expects.
 
 Open a live shell with everything imported: `task repl`, then `from grimm import Actor`.
 
+## API reference
+
+Full reference for `Actor`, `Dungeon`, and `SaveGame` — every method, signature,
+and example, plus the save-file schema — is in **[docs/API.md](docs/API.md)**.
+
 ## Layout
 
 | Path | What |
 |------|------|
 | `grimm/actor.py` | the `Actor` class — heavily commented, read this first |
-| `grimm/__init__.py` | makes `from grimm import Actor` work |
-| `examples/step1.py`, `examples/step2.py` | the two steps above |
+| `grimm/dungeon.py` | `Dungeon` — find/build/launch the adventure |
+| `grimm/save.py` | `SaveGame` — read & write the dungeon's saved game |
+| `grimm/__init__.py` | makes `from grimm import Actor, Dungeon, SaveGame` work |
+| `examples/step1.py` … `step4.py` | runnable steps (`task step1` … `task save`) |
 | `tests/test_actor.py` | tests that double as examples (`task test`) |
-| `pyproject.toml` | project + uv config (Python ≥ 3.13) |
+| `docs/API.md` | full API reference |
+| `pyproject.toml` | project + uv config (Python ≥ 3.9) |
 
 ## Run the tests
 
