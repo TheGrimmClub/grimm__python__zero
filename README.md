@@ -6,6 +6,22 @@ methods, and f-strings — in the Grimm world.
 
 > Set up Python & uv first with [GrimmSetup](https://github.com/TheGrimmClub/GrimmSetup).
 
+## Install
+
+Once published, grab it from PyPI:
+
+```sh
+pip install grimm-python-zero      # or: uv add grimm-python-zero
+```
+
+```python
+from grimm import Actor
+print(Actor())
+```
+
+To hack on the lessons instead, clone this repo and run the examples with
+`task step1` / `task step2` / `task step3`.
+
 ## Step 1 — make an actor
 
 ```python
