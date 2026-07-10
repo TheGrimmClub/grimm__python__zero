@@ -1,0 +1,31 @@
+version: '3'
+
+# grimm__python__zero — day-two Python teaching package.
+# Run `task` to list. Everything runs through uv (see GrimmSetup).
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  step1:
+    desc: "Run step 1 — make an actor and print it"
+    cmds:
+      - uv run examples/step1.py
+
+  step2:
+    desc: "Run step 2 — name your actor and enter the dungeon"
+    cmds:
+      - uv run examples/step2.py
+
+  test:
+    desc: Run the tests
+    cmds:
+      - uv run --with pytest pytest -q
+
+  repl:
+    desc: Open a Python shell with grimm ready to import
+    cmds:
+      - uv run python
