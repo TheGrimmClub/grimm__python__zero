@@ -1,6 +1,6 @@
 """Step 4 — read your saved game from Python.
 
-After you've played the dungeon, this peeks at ~/.grimm/save.yaml: your class,
+After you've played the dungeon, this peeks at ~/.grimm/save.syon: your class,
 where you are, what you carry, which rooms you've seen and puzzles you've solved.
 Ids are resolved to human names when a grimm__dungeon__mono checkout is nearby.
 

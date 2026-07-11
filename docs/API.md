@@ -14,7 +14,7 @@ It documents every public method of the three classes:
 - **`Game`** — auto-loads your save; `summary()`, `actor()`, and the write
   mutators `grant` / `drop` / `wear` / `visit` / `solve` / `go` + `write()`
 
-…plus the `~/.grimm/save.yaml` schema and a data-flow diagram.
+…plus the `~/.grimm/save.syon` schema and a data-flow diagram.
 
 ```python
 from grimm import Actor, Dungeon, Game

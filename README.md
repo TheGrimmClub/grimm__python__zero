@@ -63,7 +63,7 @@ Run it: `task step2`  (or `uv run examples/step2.py`)
 ## Step 4 — read your saved game
 
 Once you've played the dungeon, Python can read your progress from
-`~/.grimm/save.yaml`:
+`~/.grimm/save.syon`:
 
 ```python
 from grimm import Dungeon, Game
@@ -85,11 +85,11 @@ dungeon loads it the next time you play:
 ```python
 game = Game()
 game.grant("zeitsiegel").wear("helm").visit("archiv").solve("repo-tor").go("halle")
-game.write()   # writes ~/.grimm/save.yaml — the real dungeon reads it back
+game.write()   # writes ~/.grimm/save.syon — the real dungeon reads it back
 ```
 
 Mutators (`grant`, `drop`, `wear`, `visit`, `solve`, `go`) chain and skip
-duplicates; `write()` emits exactly the YAML the Go game expects.
+duplicates; `write()` emits exactly the SYON the Go game expects.
 
 ## Concepts you just met
 
@@ -114,7 +114,7 @@ Open a live shell with everything imported: `task repl`, then `from grimm import
 
 ## API reference
 
-Full reference for `Actor`, `Dungeon`, and `SaveGame` — every method, signature,
+Full reference for `Actor`, `Dungeon`, and `Game` — every method, signature,
 and example, plus the save-file schema — is rendered in the Grimmoire:
 
 **→ <https://thegrimmclub.github.io/grimmoire/en/api-reference/>** (also [docs/API.md](docs/API.md)).

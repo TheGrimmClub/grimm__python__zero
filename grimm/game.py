@@ -1,8 +1,9 @@
 """Read and write the dungeon's saved game from Python.
 
-grimm__dungeon__mono keeps your progress in ``~/.grimm/save.yaml`` as simple,
-versioned YAML. ``Game`` reads it — and writes it back — with a tiny purpose-built
-parser/emitter, so this package stays dependency-free.
+grimm__dungeon__mono keeps your progress in ``~/.grimm/save.syon`` as
+`SYON <https://github.com/object-notation-environment/safe-yaml-object-notation>`_
+(safe YAML, D013). ``Game`` reads it — and writes it back — with a tiny
+purpose-built parser/emitter, so this package stays dependency-free.
 
     from grimm import Game
 
@@ -16,8 +17,20 @@ parser/emitter, so this package stays dependency-free.
 from pathlib import Path
 
 
+def _unquote(text):
+    """Strip surrounding double-quotes (SYON quotes empties/special values)."""
+    if len(text) >= 2 and text[0] == '"' and text[-1] == '"':
+        inner = text[1:-1]
+        for a, b in (("\\n", "\n"), ("\\t", "\t"), ('\\"', '"'), ("\\\\", "\\")):
+            inner = inner.replace(a, b)
+        return inner
+    return text
+
+
 def _scalar(text):
-    """Turn a YAML scalar into an int where obvious, else leave it a string."""
+    """A SYON scalar: unquote if quoted, coerce obvious integers, else a string."""
+    if text[:1] == '"':
+        return _unquote(text)
     if text.lstrip("-").isdigit():
         return int(text)
     return text
@@ -31,10 +44,10 @@ def _extend(dst, items):
 
 
 def _parse_save(text):
-    """Parse the save's small, fixed YAML shape into a plain dict.
+    """Parse the save's small, fixed SYON shape into a plain dict.
 
     The file only ever has a top-level ``version`` and a ``game`` mapping whose
-    values are scalars or lists of ids — so we don't need a full YAML library.
+    values are scalars or lists of ids — so we don't need a full SYON library.
     """
     data = {"version": None, "game": {}}
     game = data["game"]
@@ -59,7 +72,7 @@ def _parse_save(text):
 
         if line.startswith("- "):  # an item of the current list
             if current_list is not None:
-                current_list.append(line[2:].strip())
+                current_list.append(_unquote(line[2:].strip()))
             continue
 
         key, _, val = line.partition(":")  # a field under `game`
@@ -75,7 +88,7 @@ def _parse_save(text):
 
 
 class Game:
-    """The dungeon's saved game (``~/.grimm/save.yaml``) — readable and writable.
+    """The dungeon's saved game (``~/.grimm/save.syon``) — readable and writable.
 
     Constructing a `Game` loads your save automatically when one exists; pass a
     different ``path`` to read another save.
@@ -95,7 +108,7 @@ class Game:
 
     @staticmethod
     def default_path():
-        return Path.home() / ".grimm" / "save.yaml"
+        return Path.home() / ".grimm" / "save.syon"
 
     def exists(self):
         return self.path.is_file()
@@ -186,30 +199,31 @@ class Game:
         return self
 
     def write(self, path=None):
-        """Write the game back as YAML the dungeon can load. Returns the path."""
+        """Write the game back as SYON the dungeon can load. Returns the path."""
         target = Path(path).expanduser() if path else self.path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(self._dump(), encoding="utf-8")
         return target
 
     def _dump(self):
-        """Serialize to the exact YAML shape the dungeon writes (indent 4)."""
+        """Serialize to the exact SYON shape the dungeon writes (2-space indent)."""
 
         def scalar(v):
             return v if v else '""'
 
         def block(name, items):
+            # SYON has no `[]` flow — an empty list is a bare `key:`.
             if not items:
-                return f"    {name}: []"
-            return "\n".join([f"    {name}:"] + [f"        - {i}" for i in items])
+                return f"  {name}:"
+            return "\n".join([f"  {name}:"] + [f"    - {i}" for i in items])
 
         return (
             "\n".join(
                 [
                     f"version: {self.version or 1}",
                     "game:",
-                    f"    title: {scalar(self.title)}",
-                    f"    location: {scalar(self.location)}",
+                    f"  title: {scalar(self.title)}",
+                    f"  location: {scalar(self.location)}",
                     block("inventory", self.inventory),
                     block("worn", self.worn),
                     block("visited", self.visited),

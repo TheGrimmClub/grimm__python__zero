@@ -90,7 +90,7 @@ def test_status_reports_what_it_sees(monkeypatch):
 
 
 def test_game_autoloads_on_construction(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     g = Game(str(p))  # no explicit .load()
     assert g.location == "archiv"
@@ -98,7 +98,7 @@ def test_game_autoloads_on_construction(tmp_path):
 
 
 def test_savegame_parses_the_save(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     s = Game(str(p)).load()
     assert s.version == 1
@@ -111,7 +111,7 @@ def test_savegame_parses_the_save(tmp_path):
 
 
 def test_savegame_summary_resolves_names(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     out = Game(str(p)).load().summary({"helm": "Helm mit Stirnlampe", "archiv": "Das Archiv"})
     assert "Helm mit Stirnlampe" in out
@@ -135,7 +135,7 @@ def test_dungeon_world_names_from_source(tmp_path):
 
 
 def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     (
         Game(str(p))
@@ -155,7 +155,7 @@ def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
 
 
 def test_savegame_drop_removes_item_and_worn(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     Game(str(p)).load().drop("helm").write()
     again = Game(str(p)).load()
@@ -164,15 +164,16 @@ def test_savegame_drop_removes_item_and_worn(tmp_path):
 
 
 def test_savegame_writes_empty_lists(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     Game(str(p)).go("tor").write()  # fresh, empty inventory/visited/...
     text = p.read_text(encoding="utf-8")
-    assert "inventory: []" in text
+    assert "  inventory:\n" in text  # SYON: empty list is a bare `key:`
+    assert "[]" not in text  # no forbidden flow
     assert Game(str(p)).load().location == "tor"
 
 
 def test_savegame_makes_an_actor(tmp_path):
-    p = tmp_path / "save.yaml"
+    p = tmp_path / "save.syon"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     hero = Game(str(p)).load().actor()
     assert isinstance(hero, Actor)
