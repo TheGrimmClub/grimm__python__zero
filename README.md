@@ -66,14 +66,14 @@ Once you've played the dungeon, Python can read your progress from
 `~/.grimm/save.yaml`:
 
 ```python
-from grimm import Dungeon, SaveGame
+from grimm import Dungeon, Game
 
 Dungeon().show()          # inventory, current room, visited, solved
 
-save = SaveGame().load()  # or work with the data directly
-print(save.location)      # "archiv"
-print(save.inventory)     # ["helm", "nanostaub", ...]
-hero = save.actor()       # an Actor named after your class → back to Step 1
+game = Game()             # loads your save automatically
+print(game.location)      # "archiv"
+print(game.inventory)     # ["helm", "nanostaub", ...]
+hero = game.actor()       # an Actor named after your class → back to Step 1
 ```
 
 `Dungeon().show()` resolves ids to full names (`helm` → "Helm mit Stirnlampe")
@@ -83,9 +83,9 @@ You can also **write** the save — grant items, mark rooms, then persist. The
 dungeon loads it the next time you play:
 
 ```python
-save = SaveGame().load()
-save.grant("zeitsiegel").wear("helm").visit("archiv").solve("repo-tor").go("halle")
-save.write()   # writes ~/.grimm/save.yaml — the real dungeon reads it back
+game = Game()
+game.grant("zeitsiegel").wear("helm").visit("archiv").solve("repo-tor").go("halle")
+game.write()   # writes ~/.grimm/save.yaml — the real dungeon reads it back
 ```
 
 Mutators (`grant`, `drop`, `wear`, `visit`, `solve`, `go`) chain and skip
@@ -125,8 +125,8 @@ and example, plus the save-file schema — is rendered in the Grimmoire:
 |------|------|
 | `grimm/actor.py` | the `Actor` class — heavily commented, read this first |
 | `grimm/dungeon.py` | `Dungeon` — find/build/launch the adventure |
-| `grimm/save.py` | `SaveGame` — read & write the dungeon's saved game |
-| `grimm/__init__.py` | makes `from grimm import Actor, Dungeon, SaveGame` work |
+| `grimm/game.py` | `Game` — read & write the dungeon's saved game |
+| `grimm/__init__.py` | makes `from grimm import Actor, Dungeon, Game` work |
 | `examples/step1.py` … `step4.py` | runnable steps (`task step1` … `task save`) |
 | `tests/test_actor.py` | tests that double as examples (`task test`) |
 | `docs/API.md` | full API reference |

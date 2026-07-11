@@ -4,7 +4,7 @@ These double as examples: each test shows one thing an Actor can do. Run them
 with `task test` or `uv run --with pytest pytest`.
 """
 
-from grimm import Actor, Dungeon, SaveGame
+from grimm import Actor, Dungeon, Game
 
 SAMPLE_SAVE = """version: 1
 game:
@@ -89,10 +89,18 @@ def test_status_reports_what_it_sees(monkeypatch):
     assert st["workspace"].name == "work"
 
 
+def test_game_autoloads_on_construction(tmp_path):
+    p = tmp_path / "save.yaml"
+    p.write_text(SAMPLE_SAVE, encoding="utf-8")
+    g = Game(str(p))  # no explicit .load()
+    assert g.location == "archiv"
+    assert "helm" in g.inventory
+
+
 def test_savegame_parses_the_save(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
-    s = SaveGame(str(p)).load()
+    s = Game(str(p)).load()
     assert s.version == 1
     assert s.title == "Jäger"
     assert s.location == "archiv"
@@ -105,7 +113,7 @@ def test_savegame_parses_the_save(tmp_path):
 def test_savegame_summary_resolves_names(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
-    out = SaveGame(str(p)).load().summary({"helm": "Helm mit Stirnlampe", "archiv": "Das Archiv"})
+    out = Game(str(p)).load().summary({"helm": "Helm mit Stirnlampe", "archiv": "Das Archiv"})
     assert "Helm mit Stirnlampe" in out
     assert "Das Archiv" in out
 
@@ -130,7 +138,7 @@ def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
     (
-        SaveGame(str(p))
+        Game(str(p))
         .load()
         .grant("zeitsiegel", "helm")  # helm already there — no duplicate
         .visit("halle")
@@ -138,7 +146,7 @@ def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
         .go("halle")
         .write()
     )
-    again = SaveGame(str(p)).load()
+    again = Game(str(p)).load()
     assert again.inventory.count("helm") == 1
     assert "zeitsiegel" in again.inventory
     assert "halle" in again.visited
@@ -149,24 +157,24 @@ def test_savegame_grant_visit_and_write_roundtrip(tmp_path):
 def test_savegame_drop_removes_item_and_worn(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
-    SaveGame(str(p)).load().drop("helm").write()
-    again = SaveGame(str(p)).load()
+    Game(str(p)).load().drop("helm").write()
+    again = Game(str(p)).load()
     assert "helm" not in again.inventory
     assert "helm" not in again.worn
 
 
 def test_savegame_writes_empty_lists(tmp_path):
     p = tmp_path / "save.yaml"
-    SaveGame(str(p)).go("tor").write()  # fresh, empty inventory/visited/...
+    Game(str(p)).go("tor").write()  # fresh, empty inventory/visited/...
     text = p.read_text(encoding="utf-8")
     assert "inventory: []" in text
-    assert SaveGame(str(p)).load().location == "tor"
+    assert Game(str(p)).load().location == "tor"
 
 
 def test_savegame_makes_an_actor(tmp_path):
     p = tmp_path / "save.yaml"
     p.write_text(SAMPLE_SAVE, encoding="utf-8")
-    hero = SaveGame(str(p)).load().actor()
+    hero = Game(str(p)).load().actor()
     assert isinstance(hero, Actor)
     assert hero.name() == "Jäger"
 

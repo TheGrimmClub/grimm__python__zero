@@ -9,17 +9,17 @@ It documents every public method of the three classes:
 
 - **`Actor`** — `name()`, `enter_dungeon(launch)`, `__str__`/`__repr__`
 - **`Dungeon`** — `find()`, `find_source()`, `build()`, `workspace()`,
-  `seed_workspace()`, `save()`, `world_names()`, `show()`, `status()`,
+  `seed_workspace()`, `game()`, `world_names()`, `show()`, `status()`,
   `enter(build)`
-- **`SaveGame`** — `load()`, `summary()`, `actor()`, and the write mutators
-  `grant` / `drop` / `wear` / `visit` / `solve` / `go` + `write()`
+- **`Game`** — auto-loads your save; `summary()`, `actor()`, and the write
+  mutators `grant` / `drop` / `wear` / `visit` / `solve` / `go` + `write()`
 
 …plus the `~/.grimm/save.yaml` schema and a data-flow diagram.
 
 ```python
-from grimm import Actor, Dungeon, SaveGame
+from grimm import Actor, Dungeon, Game
 ```
 
 The classes themselves are heavily commented — `grimm/actor.py`,
-`grimm/dungeon.py`, `grimm/save.py` — and `tests/test_actor.py` doubles as usage
+`grimm/dungeon.py`, `grimm/game.py` — and `tests/test_actor.py` doubles as usage
 examples.

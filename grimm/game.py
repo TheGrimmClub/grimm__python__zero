@@ -1,15 +1,16 @@
-"""Read the dungeon's saved game from Python.
+"""Read and write the dungeon's saved game from Python.
 
-grimm__dungeon__mono writes your progress to ``~/.grimm/save.yaml`` as simple,
-versioned YAML. This module reads it — inventory, current room, visited rooms,
-solved puzzles — with a tiny purpose-built parser, so this package stays
-dependency-free.
+grimm__dungeon__mono keeps your progress in ``~/.grimm/save.yaml`` as simple,
+versioned YAML. ``Game`` reads it — and writes it back — with a tiny purpose-built
+parser/emitter, so this package stays dependency-free.
 
-    from grimm import SaveGame
+    from grimm import Game
 
-    save = SaveGame().load()
-    print(save.location)     # e.g. "archiv"
-    print(save.inventory)    # ["helm", "nanostaub", ...]
+    game = Game()            # loads your save automatically (if there is one)
+    print(game.location)     # "archiv"
+    print(game.inventory)    # ["helm", "nanostaub", ...]
+
+    game.grant("zeitsiegel").visit("archiv").write()   # …and write it back
 """
 
 from pathlib import Path
@@ -73,8 +74,12 @@ def _parse_save(text):
     return data
 
 
-class SaveGame:
-    """A read-only view of a saved Grimm game (``~/.grimm/save.yaml``)."""
+class Game:
+    """The dungeon's saved game (``~/.grimm/save.yaml``) — readable and writable.
+
+    Constructing a `Game` loads your save automatically when one exists; pass a
+    different ``path`` to read another save.
+    """
 
     def __init__(self, path=None):
         self.path = Path(path).expanduser() if path else self.default_path()
@@ -85,6 +90,8 @@ class SaveGame:
         self.worn = []        # item ids the player wears
         self.visited = []     # room ids seen
         self.solved = []      # puzzle ids cleared
+        if self.exists():
+            self.load()
 
     @staticmethod
     def default_path():
@@ -94,9 +101,9 @@ class SaveGame:
         return self.path.is_file()
 
     def load(self):
-        """Read and parse the save. Returns ``self`` for chaining.
+        """(Re)read and parse the save. Returns ``self``.
 
-        Raises ``FileNotFoundError`` if there is no save yet.
+        Raises ``FileNotFoundError`` if there is no save at ``path``.
         """
         data = _parse_save(self.path.read_text(encoding="utf-8"))
         game = data.get("game", {})
@@ -127,11 +134,11 @@ class SaveGame:
         return "\n".join(lines)
 
     def actor(self):
-        """Make an `Actor` named after this save's class/title.
+        """Make an `Actor` named after this game's class/title.
 
-        The bridge from saved game data back to the toy `Actor` you built:
+        The bridge from saved data back to the toy `Actor` you built:
 
-            hero = SaveGame().load().actor()
+            hero = Game().actor()
             print(hero)
         """
         from .actor import Actor
@@ -141,7 +148,7 @@ class SaveGame:
     # -- writing (grant items, visit rooms, …) ------------------------------
     #
     # Each mutator returns ``self`` so you can chain them, then ``write()``:
-    #     SaveGame().load().grant("zeitsiegel").visit("archiv").write()
+    #     Game().grant("zeitsiegel").visit("archiv").write()
 
     def grant(self, *items):
         """Add item ids to the inventory (no duplicates)."""
@@ -179,7 +186,7 @@ class SaveGame:
         return self
 
     def write(self, path=None):
-        """Write the save back as YAML the dungeon can load. Returns the path."""
+        """Write the game back as YAML the dungeon can load. Returns the path."""
         target = Path(path).expanduser() if path else self.path
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(self._dump(), encoding="utf-8")
@@ -216,4 +223,4 @@ class SaveGame:
         return self.summary()
 
     def __repr__(self):
-        return f"SaveGame(location={self.location!r}, items={len(self.inventory)})"
+        return f"Game(location={self.location!r}, items={len(self.inventory)})"

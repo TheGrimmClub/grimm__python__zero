@@ -149,12 +149,12 @@ class Dungeon:
 
     # -- saved-game data ----------------------------------------------------
 
-    def save(self):
-        """Return the saved game as a `SaveGame`, or ``None`` if there is none."""
-        from .save import SaveGame
+    def game(self):
+        """Return the saved game as a `Game`, or ``None`` if there is none."""
+        from .game import Game
 
-        game = SaveGame()
-        return game.load() if game.exists() else None
+        game = Game()
+        return game if game.exists() else None
 
     def world_names(self):
         """Map item/room ids to human names, read from a nearby checkout.
@@ -181,9 +181,9 @@ class Dungeon:
         """Print a summary of the saved game (inventory, room, progress).
 
         Uses human names from a nearby checkout when available. Returns the
-        `SaveGame`, or ``None`` if there is no save yet.
+        `Game`, or ``None`` if there is no save yet.
         """
-        game = self.save()
+        game = self.game()
         if game is None:
             print(warn("No saved game yet — play first with Dungeon().enter()."))
             return None
